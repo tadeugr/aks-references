@@ -6,6 +6,10 @@
 
 https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration#create-the-server-application
 
+### Create Azure AD server component (CLI)
+
+https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration-cli#create-azure-ad-server-component
+
 # Create the client application
 
 ## References 
@@ -13,6 +17,10 @@ https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration#create-the-serve
 ### Create the client application
 
 https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration#create-the-client-application
+
+### Create Azure AD client component (CLI)
+
+https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration-cli#create-azure-ad-client-component
 
 # Create an AKS cluster integrated with AAD
 
