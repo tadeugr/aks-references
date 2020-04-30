@@ -73,3 +73,7 @@ https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-s
 ### Resource group limits
 
 https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#resource-group-limits
+
+### Resources not limited to 800 instances per resource group
+
+https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resources-without-resource-group-limit
