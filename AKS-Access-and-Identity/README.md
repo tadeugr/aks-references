@@ -36,3 +36,7 @@ az aks get-credentials \
 ### Regular user with RBAC enabled cluster has system:masters role
 
 https://github.com/Azure/AKS/issues/1343#issuecomment-615908008
+
+### az aks get-credentials should return unique credentials for each user instead of returning shared credentials
+
+https://github.com/Azure/AKS/issues/397
