@@ -147,7 +147,7 @@ users:
 
 ## RBAC for Users
 
-`.subjects.name` has to match certificate's Common Name (`CN`).
+`.subjects.apiGroup.name` has to match certificate's Common Name (`CN`).
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -166,7 +166,7 @@ subjects:
 
 ## RBAC for Groups
 
-`.subjects.name` has to match certificate's organization (`O`).
+`.subjects.apiGroup.name` has to match certificate's organization (`O`).
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
