@@ -150,6 +150,10 @@ users:
 `.subjects.apiGroup.name` has to match certificate's Common Name (`CN`).
 
 ```
+openssl req -new -key bob.key -out bob.csr -subj "/CN=bob/O=engineers"
+```
+
+```
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -167,6 +171,10 @@ subjects:
 ## RBAC for Groups
 
 `.subjects.apiGroup.name` has to match certificate's organization (`O`).
+
+```
+openssl req -new -key bob.key -out bob.csr -subj "/CN=bob/O=engineers"
+```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
