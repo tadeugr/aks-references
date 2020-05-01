@@ -124,7 +124,9 @@ az disk show \
 Output example.
 
 ```
+...
 "id": "/subscriptions/7a87b86a-eecb-4e2a-8a94-2360e443dba3/resourceGroups/MY-DISK-RESOURCE-GROUP/providers/Microsoft.Compute/disks/MY-DISK-NAME",
+...
 ```
 
 Mount the volume in a Pod.
@@ -164,7 +166,8 @@ Create a Kubernetes secret.
 
 ```
 kubectl create secret generic azure-secret \
---from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \ --from-literal=azurestorageaccountkey=$STORAGE_KEY
+  --from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \
+  --from-literal=azurestorageaccountkey=$STORAGE_KEY
 ```
 
 #### Mount a static Storage Account directly in the Pod
