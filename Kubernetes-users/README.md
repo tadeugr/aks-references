@@ -75,12 +75,6 @@ kubectl get csr bob-csr -o jsonpath='{.status.certificate}' | base64 --decode > 
 
 # Create kubeconfig files for users
 
-## References
-
-### Ref
-
-LINK
-
 ## Examples
 
 Create a kubeconfig file for a user using self-signed certificates, editing an orignal kubeconfig file.
