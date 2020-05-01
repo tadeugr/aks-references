@@ -107,9 +107,9 @@ Edit the kubeconfig file.
 vi ./template.kubeconfig
 ```
 
-Keep the `clusters.cluster.certificate-authority-data` of the original file.
+Keep the `.clusters.cluster.certificate-authority-data` of the original file.
 
-Keep the `clusters.cluster.server` of the original file.
+Keep the `.clusters.cluster.server` of the original file.
 
 Change `.contexts.context.user` and `.users.name`. They have to match.
 
