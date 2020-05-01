@@ -1,6 +1,6 @@
 # Table of Contents
 
-* [Welcome ](https://github.com/tadeugr/aks-references/blob/master/Welcome)
+* [Welcome](https://github.com/tadeugr/aks-references/blob/master/Welcome)
 
 * [AKS overview](https://github.com/tadeugr/aks-references/blob/master/AKS-overview)
 
@@ -10,10 +10,10 @@
 
 * [Create an AKS Cluster](https://github.com/tadeugr/aks-references/tree/master/Create-an-AKS-Cluster)
 
-* (AKS Access and Identity)[https://github.com/tadeugr/aks-references/tree/master/AKS-Access-and-Identity]
+* [AKS Access and Identity](https://github.com/tadeugr/aks-references/tree/master/AKS-Access-and-Identity)
 
-* (Integrate AKS with Azure Active Directory)[https://github.com/tadeugr/aks-references/tree/master/Integrate-AKS-with-Azure-Active-Directory]
+* [Integrate AKS with Azure Active Directory](https://github.com/tadeugr/aks-references/tree/master/Integrate-AKS-with-Azure-Active-Directory)
 
-* (Kubernetes users)[https://github.com/tadeugr/aks-references/tree/master/Kubernetes-users]
+* [Kubernetes users](https://github.com/tadeugr/aks-references/tree/master/Kubernetes-users)
 
-* (AKS volumes)[https://github.com/tadeugr/aks-references/tree/master/AKS-volumes]
+* [AKS volumes](https://github.com/tadeugr/aks-references/tree/master/AKS-volumes)
