@@ -1,3 +1,15 @@
+# AKS Authorization and Authentication
+
+## References
+
+### Use Azure role-based access controls to define access to the Kubernetes configuration file in Azure Kubernetes Service (AKS)
+
+https://docs.microsoft.com/bs-latn-ba/azure/aks/control-kubeconfig-access
+
+### A Primer on Kubernetes Access Control
+
+https://thenewstack.io/a-primer-on-kubernetes-access-control/
+
 # Generate kubeconfig (get-credentials)
 
 ## References
