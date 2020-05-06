@@ -17,3 +17,5 @@
 * [Kubernetes users](https://github.com/tadeugr/aks-references/tree/master/Kubernetes-users)
 
 * [AKS volumes](https://github.com/tadeugr/aks-references/tree/master/AKS-volumes)
+
+* [AKS monitoring](https://github.com/tadeugr/aks-references/tree/master/AKS-monitoring)
