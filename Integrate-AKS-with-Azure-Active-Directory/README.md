@@ -22,7 +22,7 @@ https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration#create-the-clien
 
 https://docs.microsoft.com/en-us/azure/aks/azure-ad-integration-cli#create-azure-ad-client-component
 
-# Create an AKS cluster integrated with AAD
+# Integrate AKS with Azure Active Directory
 
 ## References
 

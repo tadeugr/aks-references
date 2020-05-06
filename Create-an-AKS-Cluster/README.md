@@ -1,3 +1,42 @@
+# Before you begin
+
+## References
+
+### What you can change after creating a cluster
+
+#### az aks update
+
+https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-update
+
+#### az aks nodepool add
+
+https://docs.microsoft.com/en-us/cli/azure/aks/nodepool?view=azure-cli-latest#az-aks-nodepool-add
+
+#### az aks nodepool delete
+
+https://docs.microsoft.com/en-us/cli/azure/aks/nodepool?view=azure-cli-latest#az-aks-nodepool-delete
+
+#### az aks nodepool upgrade
+
+https://docs.microsoft.com/en-us/cli/azure/aks/nodepool?view=azure-cli-latest#az-aks-nodepool-upgrade
+
+#### az aks upgrade
+
+https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-upgrade
+
+#### az aks rotate-certs
+
+https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-rotate-certs
+
+#### az aks enable-addons
+
+https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-enable-addons
+
+#### az aks disable-addons
+
+https://docs.microsoft.com/en-us/cli/azure/aks?view=azure-cli-latest#az-aks-disable-addons
+
+
 # Using Azure Portal
 
 ## References
