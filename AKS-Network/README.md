@@ -50,6 +50,10 @@ https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-outbound-conn
 
 https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard#configure-outbound-ports-and-idle-timeout
 
+### Control egress traffic for cluster nodes in Azure Kubernetes Service (AKS)
+
+https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic
+
 ## Examples
 
 ### Create an internal LB

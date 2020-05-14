@@ -6,6 +6,14 @@
 
 https://kubernetes.io/docs/concepts/storage/storage-classes/#provisioner
 
+### What is Azure Files?
+
+https://docs.microsoft.com/en-us/azure/storage/files/storage-files-introduction
+
+### Introduction to Azure managed disks
+
+https://docs.microsoft.com/en-us/azure/virtual-machines/windows/managed-disks-overview
+
 # Dynamic Volumes
 
 ## References
@@ -31,7 +39,7 @@ metadata:
   name: azure-managed-disk
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   storageClassName: managed-premium
   resources:
     requests:
