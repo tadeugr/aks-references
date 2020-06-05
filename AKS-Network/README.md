@@ -162,3 +162,409 @@ spec:
 Then access in your browser.
 
 http://party-clippy.REPLACE-WITH-YOUR-DNS-DOMAIN.aksapp.io
+
+# [ HANDS-ON ] Basic External Load Balancer with dynamic outbound IP
+
+
+## Export env vars
+
+```
+AKS_NAME="REPLACE-WITH-YOUR-CLUSTER-NAME"
+AKS_RG="REPLACE-WITH-YOUR-CLUSTER-RESOURCE-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-CLUSTER-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-CLUSTER-REGION"
+```
+
+## Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $AKS_RG \
+  --subscription $SUBSCRIPTION
+```
+
+## Create SP
+
+```
+az ad sp create-for-rbac \
+  --skip-assignment \
+  -n "sp-aks"
+```
+
+## Create AKS
+
+```
+az aks create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $AKS_RG \
+  --name $AKS_NAME \
+  --ssh-key-value $HOME/.ssh/id_rsa.pub \
+  --service-principal "REPLACE-WITH-YOUR-SP-ID" \
+  --client-secret "REPLACE-WITH-YOUR-SP-PASSWORD" \
+  --network-plugin kubenet \
+  --load-balancer-sku basic \
+  --outbound-type loadBalancer \
+  --node-vm-size Standard_B2s \
+  --node-count 1 \
+  --tags 'ENV=DEV' 'SRV=EXAMPLE'
+```
+
+Get kubeconfig.
+
+```
+FILE="./$AKS_NAME.kubeconfig"
+
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_NAME_RG \
+  --subscription $SUBSCRIPTION \
+  --admin \
+  --file $FILE
+
+export KUBECONFIG=$FILE
+```
+
+## Deploy Pod
+
+```
+kubectl run -it --rm --generator=run-pod/v1 busybox --image=busybox -- sh
+```
+
+## Create VM
+
+Create a Virtual Machine to be the AKS destination.
+
+### Export env vars
+
+```
+VM_NAME="REPLACE-WITH-YOUR-VM-NAME"
+VM_RG="REPLACE-WITH-YOUR-CLUSTER-VM-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-VM-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-VM-REGION"
+```
+
+### Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $VM_RG \
+  --subscription $SUBSCRIPTION
+```
+
+### Create VM
+
+```
+az vm create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $VM_RG \
+  --name $VM_NAME \
+  --ssh-key-values $HOME/.ssh/id_rsa.pub \
+  --admin-username devops \
+  --image UbuntuLTS \
+  --nsg-rule SSH \
+  --public-ip-address-allocation static \
+  --public-ip-sku Basic \
+  --size Standard_A2_v2
+```
+
+### Use netcat to start a process
+
+SSH to the VM and run:
+
+```
+nc -l 8080
+```
+
+### Use tcpdump to inspect packets 
+
+SSH to the VM and run:
+
+```
+tcpdump -n -i eth0 port 8080
+```
+
+Then, from the AKS Pod, run: 
+
+```
+telnet IP.OF.OUR.VM 8080
+```
+
+# [ HANDS-ON ] Basic External Load Balancer with static outbound IP
+
+
+## Export env vars
+
+```
+AKS_NAME="REPLACE-WITH-YOUR-CLUSTER-NAME"
+AKS_RG="REPLACE-WITH-YOUR-CLUSTER-RESOURCE-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-CLUSTER-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-CLUSTER-REGION"
+```
+
+## Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $AKS_RG \
+  --subscription $SUBSCRIPTION
+```
+
+## Create SP
+
+```
+az ad sp create-for-rbac \
+  --skip-assignment \
+  -n "sp-aks"
+```
+
+## Create AKS
+
+```
+az aks create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $AKS_RG \
+  --name $AKS_NAME \
+  --ssh-key-value $HOME/.ssh/id_rsa.pub \
+  --service-principal "REPLACE-WITH-YOUR-SP-ID" \
+  --client-secret "REPLACE-WITH-YOUR-SP-PASSWORD" \
+  --network-plugin kubenet \
+  --load-balancer-sku basic \
+  --outbound-type loadBalancer \
+  --node-vm-size Standard_B2s \
+  --node-count 1 \
+  --tags 'ENV=DEV' 'SRV=EXAMPLE'
+```
+
+Get kubeconfig.
+
+```
+FILE="./$AKS_NAME.kubeconfig"
+
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_NAME_RG \
+  --subscription $SUBSCRIPTION \
+  --admin \
+  --file $FILE
+
+export KUBECONFIG=$FILE
+```
+
+## Create service
+
+Apply the following manifest.
+
+```
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-custom-egress
+spec:
+  ports:
+  - protocol: TCP
+    port: 60000
+  type: LoadBalancer
+```
+
+## Deploy Pod
+
+```
+kubectl run -it --rm --generator=run-pod/v1 busybox --image=busybox -- sh
+```
+
+## Create VM
+
+Create a Virtual Machine to be the AKS destination.
+
+### Export env vars
+
+```
+VM_NAME="REPLACE-WITH-YOUR-VM-NAME"
+VM_RG="REPLACE-WITH-YOUR-CLUSTER-VM-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-VM-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-VM-REGION"
+```
+
+### Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $VM_RG \
+  --subscription $SUBSCRIPTION
+```
+
+### Create VM
+
+```
+az vm create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $VM_RG \
+  --name $VM_NAME \
+  --ssh-key-values $HOME/.ssh/id_rsa.pub \
+  --admin-username devops \
+  --image UbuntuLTS \
+  --nsg-rule SSH \
+  --public-ip-address-allocation static \
+  --public-ip-sku Basic \
+  --size Standard_A2_v2
+```
+
+### Use netcat to start a process
+
+SSH to the VM and run:
+
+```
+nc -l 8080
+```
+
+### Use tcpdump to inspect packets 
+
+SSH to the VM and run:
+
+```
+tcpdump -n -i eth0 port 8080
+```
+
+Then, from the AKS Pod, run: 
+
+```
+telnet IP.OF.OUR.VM 8080
+```
+
+# [ HANDS-ON ] Standard External Load Balancer
+
+
+## Export env vars
+
+```
+AKS_NAME="REPLACE-WITH-YOUR-CLUSTER-NAME"
+AKS_RG="REPLACE-WITH-YOUR-CLUSTER-RESOURCE-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-CLUSTER-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-CLUSTER-REGION"
+```
+
+## Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $AKS_RG \
+  --subscription $SUBSCRIPTION
+```
+
+## Create SP
+
+```
+az ad sp create-for-rbac \
+  --skip-assignment \
+  -n "sp-aks"
+```
+
+## Create AKS
+
+```
+az aks create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $AKS_RG \
+  --name $AKS_NAME \
+  --ssh-key-value $HOME/.ssh/id_rsa.pub \
+  --service-principal "REPLACE-WITH-YOUR-SP-ID" \
+  --client-secret "REPLACE-WITH-YOUR-SP-PASSWORD" \
+  --network-plugin kubenet \
+  --load-balancer-sku standard \
+  --outbound-type loadBalancer \
+  --node-vm-size Standard_B2s \
+  --node-count 1 \
+  --tags 'ENV=DEV' 'SRV=EXAMPLE'
+```
+
+Get kubeconfig.
+
+```
+FILE="./$AKS_NAME.kubeconfig"
+
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_NAME_RG \
+  --subscription $SUBSCRIPTION \
+  --admin \
+  --file $FILE
+
+export KUBECONFIG=$FILE
+```
+
+## Deploy Pod
+
+```
+kubectl run -it --rm --generator=run-pod/v1 busybox --image=busybox -- sh
+```
+
+## Create VM
+
+Create a Virtual Machine to be the AKS destination.
+
+### Export env vars
+
+```
+VM_NAME="REPLACE-WITH-YOUR-VM-NAME"
+VM_RG="REPLACE-WITH-YOUR-CLUSTER-VM-GROUP"
+SUBSCRIPTION="REPLACE-WITH-YOUR-VM-SUBSCRIPTION"
+REGION="REPLACE-WITH-YOUR-VM-REGION"
+```
+
+### Create RG
+
+```
+az group create \
+  --location $REGION \
+  --name $VM_RG \
+  --subscription $SUBSCRIPTION
+```
+
+### Create VM
+
+```
+az vm create \
+  --location $REGION \
+  --subscription $SUBSCRIPTION \
+  --resource-group $VM_RG \
+  --name $VM_NAME \
+  --ssh-key-values $HOME/.ssh/id_rsa.pub \
+  --admin-username devops \
+  --image UbuntuLTS \
+  --nsg-rule SSH \
+  --public-ip-address-allocation static \
+  --public-ip-sku Basic \
+  --size Standard_A2_v2
+```
+
+### Use netcat to start a process
+
+SSH to the VM and run:
+
+```
+nc -l 8080
+```
+
+### Use tcpdump to inspect packets 
+
+SSH to the VM and run:
+
+```
+tcpdump -n -i eth0 port 8080
+```
+
+Then, from the AKS Pod, run: 
+
+```
+telnet IP.OF.OUR.VM 8080
+```
