@@ -568,3 +568,390 @@ Then, from the AKS Pod, run:
 ```
 telnet IP.OF.OUR.VM 8080
 ```
+
+# [ HANDS-ON ] Internal network egress
+
+## Create an UID
+
+```
+RESOURCES_UID=$(uuidgen | cut -c1-8)
+echo "RESOURCES_UID: $RESOURCES_UID" 
+```
+
+## AKS Network
+
+```
+VNET_NAME="vnet-web-$RESOURCES_UID"
+VNET_RG="rg-vnet-web-$RESOURCES_UID"
+VNET_REGION="eastus"
+VNET_SUBSCRIPTION="DEV"
+```
+
+### Create the VNET RG
+
+```
+az group create \
+  --name $VNET_RG \
+  --location $VNET_REGION \
+  --subscription $VNET_SUBSCRIPTION
+```
+
+### Create the VNET and Subnet
+
+```
+az network vnet create \
+  --name $VNET_NAME \
+  --resource-group $VNET_RG \
+  --address-prefixes 192.0.0.0/8 \
+  --subnet-name subnet-aks-kubenet-$RESOURCES_UID \
+  --subnet-prefixes 192.10.0.0/16 \
+  --location $VNET_REGION \
+  --subscription $VNET_SUBSCRIPTION
+```
+
+### Create another Subnet (aks-azure-cni)
+
+```
+az network vnet subnet create \
+  --name subnet-aks-azure-cni-$RESOURCES_UID \
+  --resource-group $VNET_RG \
+  --vnet-name $VNET_NAME \
+  --address-prefixes 192.20.0.0/16
+```
+
+### Create another Subnet (VM)
+
+```
+az network vnet subnet create \
+  --name subnet-web-$RESOURCES_UID \
+  --resource-group $VNET_RG \
+  --vnet-name $VNET_NAME \
+  --address-prefixes 192.30.0.0/16
+```
+
+
+## VM Network
+
+```
+VNET_NAME="vnet-database-$RESOURCES_UID"
+VNET_RG="rg-vnet-database-$RESOURCES_UID"
+VNET_REGION="eastus"
+VNET_SUBSCRIPTION="DEV"
+```
+
+### Create the VNET RG
+
+```
+az group create \
+  --name $VNET_RG \
+  --location $VNET_REGION \
+  --subscription $VNET_SUBSCRIPTION
+```
+
+### Create the VNET and Subnet
+
+```
+az network vnet create \
+  --name $VNET_NAME \
+  --resource-group $VNET_RG \
+  --address-prefixes 240.0.0.0/16 \
+  --subnet-name subnet-db-$RESOURCES_UID \
+  --subnet-prefixes 240.0.0.0/18 \
+  --location $VNET_REGION \
+  --subscription $VNET_SUBSCRIPTION
+```
+
+### Create the Peering
+
+Go to Azure Portal and create the Peering.
+
+## Create Virtual Machines
+
+### VM "Web"
+
+#### Get subnet ID
+
+```
+VNET_NAME="vnet-web-$RESOURCES_UID"
+VNET_RG="rg-vnet-web-$RESOURCES_UID"
+SUBNET_NAME="subnet-web-$RESOURCES_UID"
+VNET_ID=$(az network vnet show --resource-group $VNET_RG --name $VNET_NAME --query id -o tsv)
+SUBNET_ID=$(az network vnet subnet show --resource-group $VNET_RG --vnet-name $VNET_NAME --name $SUBNET_NAME --query id -o tsv)
+```
+
+#### Env vars
+
+```
+VM_NAME="vm-web-$RESOURCES_UID"
+VM_RG="rg-vm-web-$RESOURCES_UID"
+VM_REGION="eastus"
+VM_SUBSCRIPTION="DEV"
+```
+
+#### Create RG
+
+```
+az group create \
+  --location $VM_REGION \
+  --name $VM_RG \
+  --subscription $VM_SUBSCRIPTION
+```
+
+### Create VM
+
+```
+az vm create \
+  --location $VM_REGION \
+  --subscription $VM_SUBSCRIPTION \
+  --resource-group $VM_RG \
+  --name $VM_NAME \
+  --ssh-key-values $HOME/.ssh/id_rsa.pub \
+  --admin-username devops \
+  --image UbuntuLTS \
+  --nsg-rule SSH \
+  --subnet $SUBNET_ID \
+  --public-ip-address-allocation static \
+  --public-ip-sku Basic \
+  --size Standard_A2_v2
+```
+
+### VM "Database"
+
+#### Get subnet ID
+
+```
+VNET_NAME="vnet-database-$RESOURCES_UID"
+VNET_RG="rg-vnet-database-$RESOURCES_UID"
+SUBNET_NAME="subnet-db-$RESOURCES_UID"
+VNET_ID=$(az network vnet show --resource-group $VNET_RG --name $VNET_NAME --query id -o tsv)
+SUBNET_ID=$(az network vnet subnet show --resource-group $VNET_RG --vnet-name $VNET_NAME --name $SUBNET_NAME --query id -o tsv)
+```
+
+#### Env vars
+
+```
+VM_NAME="vm-database-$RESOURCES_UID"
+VM_RG="rg-vm-database-$RESOURCES_UID"
+VM_REGION="eastus"
+VM_SUBSCRIPTION="DEV"
+```
+
+#### Create RG
+
+```
+az group create \
+  --location $VM_REGION \
+  --name $VM_RG \
+  --subscription $VM_SUBSCRIPTION
+```
+
+### Create VM
+
+```
+az vm create \
+  --location $VM_REGION \
+  --subscription $VM_SUBSCRIPTION \
+  --resource-group $VM_RG \
+  --name $VM_NAME \
+  --ssh-key-values $HOME/.ssh/id_rsa.pub \
+  --admin-username devops \
+  --image UbuntuLTS \
+  --nsg-rule SSH \
+  --subnet $SUBNET_ID \
+  --public-ip-address-allocation static \
+  --public-ip-sku Basic \
+  --size Standard_A2_v2
+```
+
+## Create AKS cluster with Kubenet
+
+### Get subnet ID
+
+```
+VNET_NAME="vnet-web-$RESOURCES_UID"
+VNET_RG="rg-vnet-web-$RESOURCES_UID"
+SUBNET_NAME="subnet-aks-kubenet-$RESOURCES_UID"
+VNET_ID=$(az network vnet show --resource-group $VNET_RG --name $VNET_NAME --query id -o tsv)
+SUBNET_ID=$(az network vnet subnet show --resource-group $VNET_RG --vnet-name $VNET_NAME --name $SUBNET_NAME --query id -o tsv)
+```
+
+### Create AKS
+
+#### AKS env vars
+
+```
+AKS_NAME="aks-kubenet-$RESOURCES_UID"
+AKS_RG="rg-aks-kubenet-$RESOURCES_UID"
+AKS_REGION="eastus"
+AKS_SUBSCRIPTION="DEV"
+```
+
+#### AKS RG
+
+```
+az group create \
+  --location $AKS_REGION \
+  --name $AKS_RG \
+  --subscription $AKS_SUBSCRIPTION
+```
+
+#### Create SP
+
+```
+az ad sp create-for-rbac \
+  --skip-assignment \
+  -n "sp-aks"
+```
+
+#### Add AKS SP Owner of the VNET RG
+
+
+```
+az role assignment create \
+  --role "Owner" \
+  --assignee "a0c9b27a-fe3a-4353-9565-5a32a95cfa90" \
+  --resource-group $VNET_RG
+```
+
+#### Create AKS
+
+```
+az aks create \
+  --location $AKS_REGION \
+  --subscription $AKS_SUBSCRIPTION \
+  --resource-group $AKS_RG \
+  --name $AKS_NAME \
+  --ssh-key-value $HOME/.ssh/id_rsa.pub \
+  --service-principal "a0c9b27a-fe3a-4353-9565-5a32a95cfa90" \
+  --client-secret "FBeNGB7UkhO_w~SKq9fijZfI_7YJkqlh1c" \
+  --network-plugin kubenet \
+  --load-balancer-sku standard \
+  --outbound-type loadBalancer \
+  --vnet-subnet-id $SUBNET_ID \
+  --node-vm-size Standard_B2s \
+  --node-count 2 \
+  --tags 'ENV=DEV' 'SRV=EXAMPLE'
+```
+
+Get kubeconfig.
+
+```
+FILE="./$AKS_NAME.kubeconfig"
+
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_RG \
+  --subscription $AKS_SUBSCRIPTION \
+  --admin \
+  --file $FILE
+```
+
+## Create AKS cluster with Azure CNI
+
+### Get subnet ID
+
+```
+VNET_NAME="vnet-web-$RESOURCES_UID"
+VNET_RG="rg-vnet-web-$RESOURCES_UID"
+SUBNET_NAME="subnet-aks-azure-cni-$RESOURCES_UID"
+VNET_ID=$(az network vnet show --resource-group $VNET_RG --name $VNET_NAME --query id -o tsv)
+SUBNET_ID=$(az network vnet subnet show --resource-group $VNET_RG --vnet-name $VNET_NAME --name $SUBNET_NAME --query id -o tsv)
+```
+
+### Create AKS
+
+#### AKS env vars
+
+```
+AKS_NAME="aks-azure-cni-$RESOURCES_UID"
+AKS_RG="aks-azure-cni-$RESOURCES_UID"
+AKS_REGION="eastus"
+AKS_SUBSCRIPTION="DEV"
+```
+
+#### AKS RG
+
+```
+az group create \
+  --location $AKS_REGION \
+  --name $AKS_RG \
+  --subscription $AKS_SUBSCRIPTION
+```
+
+#### Create SP
+
+```
+az ad sp create-for-rbac \
+  --skip-assignment \
+  -n "sp-aks"
+```
+
+#### Add AKS SP Owner of the VNET RG
+
+
+```
+az role assignment create \
+  --role "Owner" \
+  --assignee "a0c9b27a-fe3a-4353-9565-5a32a95cfa90" \
+  --resource-group $VNET_RG
+```
+
+#### Create AKS
+
+```
+az aks create \
+  --location $AKS_REGION \
+  --subscription $AKS_SUBSCRIPTION \
+  --resource-group $AKS_RG \
+  --name $AKS_NAME \
+  --ssh-key-value $HOME/.ssh/id_rsa.pub \
+  --service-principal "a0c9b27a-fe3a-4353-9565-5a32a95cfa90" \
+  --client-secret "FBeNGB7UkhO_w~SKq9fijZfI_7YJkqlh1c" \
+  --network-plugin azure \
+  --load-balancer-sku standard \
+  --outbound-type loadBalancer \
+  --vnet-subnet-id $SUBNET_ID \
+  --node-vm-size Standard_B2s \
+  --node-count 2 \
+  --tags 'ENV=DEV' 'SRV=EXAMPLE'
+```
+
+Get kubeconfig.
+
+```
+FILE="./$AKS_NAME.kubeconfig"
+
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_RG \
+  --subscription $AKS_SUBSCRIPTION \
+  --admin \
+  --file $FILE
+```
+
+## Create a Daemonset
+
+Create a Daemonset, than connecto the pods to run tests.
+
+Apply the following manifets.
+
+```
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ds-busybox
+spec:
+  selector:
+    matchLabels:
+      name: busybox
+  template:
+    metadata:
+      labels:
+        name: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "tail -f /dev/null" ]
+```
