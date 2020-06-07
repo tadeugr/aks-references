@@ -962,7 +962,7 @@ spec:
 
 Go to Azure Portal, App Service Domains and buy a new domain. Azure will create the domain and a DNS Zone for the domain.
 
-# Create a SP
+## Create a SP
 
 ```
 az ad sp create-for-rbac -n sp-external-dns
@@ -971,17 +971,17 @@ az ad sp create-for-rbac -n sp-external-dns
 Copy the output with the SP credentials, you will use it later.
 
 
-# Get the DNS Zone RG ID
+## Get the DNS Zone RG ID
 
 On Azure Portal, go to your DNS Zone Resource Group, click on Properties and copy its ID.
 
 
-# Get the DNS Zone ID
+## Get the DNS Zone ID
 
 On Azure Portal, go to your DNS Zone, click on Properties and copy its ID.
 
 
-# The SP must be "Reader" of the DNS Zone RG
+## The SP must be "Reader" of the DNS Zone RG
 
 ```
 az role assignment create \
@@ -990,7 +990,7 @@ az role assignment create \
   --scope "PASTE-YOUR-DNS-ZONE-RG-ID-HERE"
 ```
 
-# The SP must be "Contributor" of the DNS Zone
+## The SP must be "Contributor" of the DNS Zone
 
 ```
 az role assignment create \
@@ -999,23 +999,23 @@ az role assignment create \
   --scope "PASTE-YOUR-DNS-ZONE-ID-HERE"
 ```
 
-# Get the Tenant ID
+## Get the Tenant ID
 
 ```
 az account show --query "tenantId"
 ```
 
-# Get the Subscription ID
+## Get the Subscription ID
 
 ```
 az account show --query "id"
 ```
 
-# Get the RG of the DNS Zone
+## Get the RG of the DNS Zone
 
 On Azure Portal, get the DNS Zone Resource Group name.
 
-# Create credentials file
+## Create credentials file
 
 ```
 vim azure.json
@@ -1033,7 +1033,7 @@ Paste the following content.
 }
 ```
 
-# Create a Kubernetes secret
+## Create a Kubernetes secret
 
 ```
 kubectl create ns my-app
@@ -1041,7 +1041,7 @@ kubectl create ns my-app
 kubectl create secret generic azure-config-file --from-file=./azure.json -n my-project
 ```
 
-# Install nginx ingress
+## Install nginx ingress
 
 ```
 kubectl create namespace ingress-external
@@ -1059,7 +1059,7 @@ helm upgrade -i ingress-external stable/nginx-ingress \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
 ```
 
-# Install external-dns
+## Install external-dns
 
 Go to: https://github.com/kubernetes-sigs/external-dns/releases
 
@@ -1151,7 +1151,7 @@ Apply the manifest.
 kubectl -n my-app apply -f external-dns.yaml
 ```
 
-# Install cert-manager
+## Install cert-manager
 
 Go to: https://cert-manager.io/docs/installation/kubernetes/#steps
 
@@ -1214,7 +1214,7 @@ Describe the cluster issuer.
 kubectl describe clusterissuers letsencrypt
 ```
 
-# Test it
+## Test it
 
 Create a manifest.
 
