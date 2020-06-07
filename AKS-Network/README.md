@@ -1467,15 +1467,15 @@ spec:
         - --source=ingress
         - --domain-filter=internal.com
         - --provider=azure-private-dns
-        - --azure-resource-group=rg-private-dns
-        - --azure-subscription-id=c498bf57-778b-4495-81f4-79da718e9c56
+        - --azure-resource-group=PASTE-YOUR-PRIVATE-DNS-ZONE-RG-ID-HERE
+        - --azure-subscription-id=PASTE-YOUR-SUBSCRIPTION-ID-HERE
         env:
         - name: AZURE_TENANT_ID
-          value: "7743c76f-8f1e-4711-ab3a-6c4ad905bcd0"
+          value: "PASTE-YOUR-TENANT-ID-HERE"
         - name: AZURE_CLIENT_ID
-          value: "84856f5f-3553-4633-bd1f-817fc4c693ee"
+          value: "PASTE-YOUR-SP-ID-HERE"
         - name: AZURE_CLIENT_SECRET
-          value: "zw~QjVcatl5oc5PMfoKKsq2919MWm01e7d"
+          value: "PASTE-YOUR-SP-PASSWORD-HERE"
 ```
 
 Apply the manifest.
