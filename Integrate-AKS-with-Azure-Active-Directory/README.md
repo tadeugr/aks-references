@@ -218,3 +218,229 @@ subjects:
   # REPLACE-WITH-YOUR-AAD-GROUP-NAME
   name: "REPLACE-WITH-YOUR-AAD-GROUP-OBJECT-ID"
 ```
+
+# [ HANDS-ON ] AKS + Azure Active Directory
+
+## Create the Server app
+
+Go to Azure Portal and create the Server App Registration
+
+## Create the Client app
+
+Go to Azure Portal and create the Client App Registration
+
+## Integrate AKS with AAD
+
+```
+az aks update-credentials \
+  -n PASTE-YOUR-CLUSTER-NAME-HERE \
+  -g PASTE-YOUR-CLUSTER-RG-HERE \
+  --aad-client-app-id PASTE-YOUR-CLIENT-APP-ID-HERE \
+  --aad-server-app-id PASTE-YOUR-SERVER-APP-ID-HERE \
+  --aad-server-app-secret PASTE-YOUR-SERVER-APP-SECRET-HERE" \
+  --aad-tenant-id PASTE-YOUR-TENANT-ID-HERE \
+  --reset-aad
+```
+
+## Create a User
+
+Creante an AAD User and the Cluster User Role to AKS.
+
+### Get credentials
+
+```
+az login
+```
+
+### Get credentials
+
+```
+az aks get-credentials \
+  -n PASTE-YOUR-CLUSTER-NAME-HERE \
+  -g PASTE-YOUR-CLUSTER-RG-HERE \
+  --file /aad/myuser.kubeconfig
+```
+
+Get kubeconfig content.
+
+```
+cat /aad/myuser.kubeconfig
+```
+
+### Run any kubectl command
+
+```
+kubectl get nodes
+```
+
+Login.
+
+Get kubeconfig content
+
+```
+cat /aad/myuser.kubeconfig
+```
+
+## Create RBAC for the user
+
+```
+vim rbac-user-myuser.yaml
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: cr-aduser-myuser-cluster-reader
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-aduser-myuser-cluster-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cr-aduser-myuser-cluster-reader
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: "PASTE-YOUR-USER-NAME-HERE"
+```
+
+### Run kubectl
+
+```
+kubectl get nodes
+```
+
+
+## Create a guest User
+
+Creante an AAD User and add the Cluster User Role to AKS.
+
+### Get credentials
+
+```
+az login
+```
+
+### Get credentials
+
+```
+az aks get-credentials \
+  -n PASTE-YOUR-CLUSTER-NAME-HERE \
+  -g PASTE-YOUR-CLUSTER-RG-HERE \
+  --file /aad/guest.kubeconfig
+```
+
+Get kubeconfig content.
+
+```
+cat /aad/guest.kubeconfig
+```
+
+### Run any kubectl command
+
+```
+kubectl get nodes
+```
+
+Login.
+
+Get kubeconfig content
+
+```
+cat /aad/guest.kubeconfig
+```
+
+## Create RBAC for the user
+
+```
+vim rbac-user-guest.yaml
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: cr-aduser-guest-cluster-reader
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-aduser-guest-cluster-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cr-aduser-guest-cluster-reader
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: "PASTE-THE-USER-OBJECT-ID-HERE"
+```
+
+### Run kubectl
+
+```
+kubectl get nodes
+```
+
+
+## Remove permissions
+
+Delete RBAC.
+
+## Create an AAD group called aks-root
+
+```
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-aadgroup-aks-root
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # aks-root
+  name: "PASTE-THE-GROUP-ID-HERE"
+```
+
+## Create an AAD group called aks-reader
+
+```
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: cr-aadgroup-aks-reader
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-aadgroup-aks-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cr-aadgroup-aks-reader
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # aks-reader
+  name: "PASTE-THE-GROUP-ID-HERE"
+```
