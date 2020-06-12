@@ -190,3 +190,228 @@ subjects:
   kind: Group
   name: engineers
 ```
+
+# [ HANDS-ON ] Kubernetes users
+
+## Generate the Private Key
+
+```
+openssl genrsa -out bob.key 4096
+```
+
+## Generate the CSR
+
+```
+openssl req -new -key bob.key -out bob.csr -subj "/CN=bob/O=engineers"
+```
+
+## Get the CSR base64 encoded
+
+```
+cat bob.csr | base64 | tr -d '\n'
+```
+
+## K8s CSR manifest
+
+Create a new file.
+
+```
+vim signing-request.yaml
+```
+
+With the following content.
+
+```
+---
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+ name: bob-csr
+spec:
+ groups:
+ - system:authenticated
+ request: PASTE-THE-CSR-BASE64-HERE
+
+ usages:
+ - digital signature
+ - key encipherment
+ - client auth
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f signing-request.yaml
+```
+
+Get the CSR.
+
+```
+kubectl get csr
+```
+
+## Approve the CSR
+
+```
+kubectl certificate approve bob-csr
+```
+
+Get the CSR again.
+
+```
+kubectl get csr
+```
+
+## Get the signed certificate
+
+```
+kubectl get csr bob-csr -o jsonpath='{.status.certificate}' | base64 --decode > bob.crt
+```
+
+Cat the file.
+
+```
+cat bob.crt
+```
+
+## Get an existing kubeconfig
+
+```
+AKS_NAME="PASTE-YOUR-CLUSTER-NAME-HERE"
+AKS_RG="PASTE-YOUR-CLUSTER-RG-HERE"
+AKS_REGION="PASTE-YOUR-CLUSTER-REGION-HERE"
+AKS_SUBSCRIPTION="PASTE-YOUR-CLUSTER-SUBSCRIPTION-HERE"
+```
+
+```
+az aks get-credentials \
+  -n $AKS_NAME \
+  -g $AKS_RG \
+  --subscription $AKS_SUBSCRIPTION \
+  --admin \
+  --file ./template.kubeconfig
+```
+
+## Get the CRT base64 encoded
+
+```
+cat bob.crt | base64 | tr -d '\n'
+```
+
+## Get the key base64 encoded
+
+```
+cat bob.key | base64 | tr -d '\n'
+```
+
+## Edit the kubeconfig file
+
+```
+vi ./template.kubeconfig
+```
+
+Replace the "user".
+
+`client-certificate-data` = CRT
+
+`client-key-data` = KEY
+
+## Test the new kubeconfig file
+
+```
+mv template.kubeconfig bob.kubeconfig
+export KUBECONFIG=./bob.kubeconfig
+kubectl get nodes
+```
+
+## RBAC for the user
+
+Using your admin kubeconfig...
+
+Create a new file.
+
+```
+vim rbac-user.yaml
+```
+
+With the following content.
+
+```
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-admin-usr-bob
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: bob
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f rbac-user.yaml
+```
+
+## Test permissions
+
+Using Bob's kubeconfig...
+
+```
+kubectl get nodes
+```
+
+## Revoke permissions
+
+Using your admin kubeconfig...
+
+Delete the RBAC
+
+```
+kubectl delete -f rbac-user.yaml
+```
+
+## RBAC for the group
+
+Using your admin kubeconfig...
+
+Create a new file.
+
+```
+vim rbac-group.yaml
+```
+
+With the following content.
+
+```
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: crb-admin-usr-bob
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: engineers
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f rbac-group.yaml
+```
+
+## Test permissions
+
+Using Bob's kubeconfig...
+
+```
+kubectl get nodes
+```

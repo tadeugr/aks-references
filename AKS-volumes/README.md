@@ -265,3 +265,204 @@ spec:
     persistentVolumeClaim:
       claimName: my-static-file-pvc
 ```
+# [ HANDS-ON ] Dynamic Volumes
+
+## Azure Disk
+
+### Create the PVC
+
+Create a manifest file.
+
+```
+vim pvc-azure-managed-disk.yaml
+```
+
+With the following content.
+
+```
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azure-managed-disk
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: managed-premium
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pvc-azure-managed-disk.yaml
+```
+
+### Mount it in a Pod
+
+Create a manifest file.
+
+```
+vim pod-disk.yaml
+```
+
+With the following content.
+
+```
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: mypod-disk
+spec:
+  containers:
+  - name: mypod
+    image: nginx
+    volumeMounts:
+    - mountPath: "/mnt/azure"
+      name: volume
+  volumes:
+    - name: volume
+      persistentVolumeClaim:
+        claimName: azure-managed-disk
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pod-disk.yaml
+```
+
+## Azure File
+
+### Create the PVC
+
+Create a manifest file.
+
+```
+vim pvc-azurefile.yaml
+```
+
+With the following content.
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurefile
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pvc-azurefile.yaml
+```
+
+Describe the secret.
+
+### Mount it in a Pod
+
+Create a manifest file.
+
+```
+vim pod-file.yaml
+```
+
+With the following content.
+
+```
+kind: Pod
+apiVersion: v1
+metadata:
+  name: mypod-file
+spec:
+  containers:
+  - name: mypod
+    image: nginx
+    volumeMounts:
+    - mountPath: "/mnt/azure"
+      name: volume
+  volumes:
+    - name: volume
+      persistentVolumeClaim:
+        claimName: azurefile
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pod-file.yaml
+```
+
+### Create another PVC (same SKU)
+
+Create a manifest file.
+
+```
+vim pvc-azurefile-002.yaml
+```
+
+With the following content.
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurefile-002
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pvc-azurefile-002.yaml
+```
+
+### Create another PVC (different SKU)
+
+Create a manifest file.
+
+```
+vim pvc-azurefile-003.yaml
+```
+
+With the following content.
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurefile-003
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile-premium
+  resources:
+    requests:
+      storage: 100Gi
+```
+
+Apply the manifest.
+
+```
+kubectl apply -f pvc-azurefile-003.yaml
+```
+
+## References
+
+https://feedback.azure.com/forums/914020-azure-kubernetes-service-aks/suggestions/35146387-support-non-interactive-login-for-aad-integrated-c
